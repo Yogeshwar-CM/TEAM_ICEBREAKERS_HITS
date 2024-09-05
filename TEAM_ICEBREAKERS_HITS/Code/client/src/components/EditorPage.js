@@ -11,6 +11,7 @@ import Spinner from "react-bootstrap/Spinner"; // For loading spinner
 
 function EditorPage() {
   const [clients, setClients] = useState([]);
+  const editorRef = useRef(null); // Editor reference
   const [compilationResult, setCompilationResult] = useState(null);
   const [language, setLanguage] = useState("javascript");
   const [prompt, setPrompt] = useState("");
@@ -18,11 +19,24 @@ function EditorPage() {
   const codeRef = useRef("");
   const [generatedCode, setGeneratedCode] = useState("");
   const [recommendedCode, setRecommendedCode] = useState("");
-  const editorRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { roomId } = useParams();
+
   const socketRef = useRef(null);
+  // Suppress ResizeObserver loop limit exceeded errors
+  const consoleError = console.error;
+  console.error = (...args) => {
+    if (
+      args[0] &&
+      args[0].includes(
+        "ResizeObserver loop completed with undelivered notifications."
+      )
+    ) {
+      return; // Ignore specific error
+    }
+    consoleError(...args); // Else log error as usual
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -163,7 +177,12 @@ function EditorPage() {
       });
     }
   };
-
+  // ResizeObserver workaround to debounce updates
+  const handleResize = debounce(() => {
+    if (editorRef.current) {
+      editorRef.current.layout();
+    }
+  }, 100);
   const handlePromptSubmit = () => {
     setLoading(true);
     try {
