@@ -17,7 +17,7 @@ This project features:
 Watch the project in action here:
 
 <video width="600" controls>
-  <source src="TEAM_ICEBREAKERS_HITS/Video/TEAM_ICEBREAKERS_Video.mp4" type="video/mp4">
+  <source src="TEAM_ICEBREAKERS_HITS/Video/TEAM_ICEBREAKERS_Demo.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
 
