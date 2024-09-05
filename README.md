@@ -14,7 +14,7 @@ This project features:
 
 ## Video Demo
 
-Watch the project in action here: [TEAM_ICEBREAKERS_Demo.mp4](TEAM_ICEBREAKERS_HITS/Video/TEAM_ICEBREAKERS_Demo.mp4)
+Click to download the project demo video: [Download TEAM_ICEBREAKERS_Demo.mp4](TEAM_ICEBREAKERS_HITS/Video/TEAM_ICEBREAKERS_Demo.mp4)
 
 ## Tech Used
 
