@@ -14,7 +14,9 @@ This project features:
 
 ## Video Demo
 
-Watch the project in action here: [TEAM_ICEBREAKERS_VIDEO.mp4](TEAM_ICEBREAKERS_HITS/Video/TEAM_ICEBREAKERS_VIDEO.mp4)
+Watch the project in action here:
+
+[![Watch the video](https://img.youtube.com/vi/VIDEO_ID/hqdefault.jpg)](TEAM_ICEBREAKERS_HITS/Video/TEAM_ICEBREAKERS_VIDEO.mp4)
 
 ## Tech Used
 
@@ -56,7 +58,7 @@ cd into both server and client seperately and execute the following
    cd ../client
    npm start
     ```
-6. ##Contributions Welcome
+6. **Contributions Welcome**
 
 Contributions are welcome! Feel free to submit issues or pull requests to help improve the project.
    
