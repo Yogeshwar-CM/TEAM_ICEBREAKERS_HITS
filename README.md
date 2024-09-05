@@ -14,12 +14,7 @@ This project features:
 
 ## Video Demo
 
-Watch the project in action here:
-
-<video width="600" controls>
-  <source src="TEAM_ICEBREAKERS_HITS/Video/TEAM_ICEBREAKERS_Demo.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+Watch the project in action here: [TEAM_ICEBREAKERS_Demo.mp4](TEAM_ICEBREAKERS_HITS/Video/TEAM_ICEBREAKERS_Demo.mp4)
 
 ## Tech Used
 
@@ -39,9 +34,9 @@ Watch the project in action here:
 
 For both server and client:
 cd into both server and client seperately and execute the following
-```bash
+  ```bash
     npm install
-```
+  ```
 
 3. **Start the Ollama Model**
    If you dont have it already, You can download it from [Ollama](https://ollama.com).
