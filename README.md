@@ -16,7 +16,10 @@ This project features:
 
 Watch the project in action here:
 
-[![Watch the video](https://img.youtube.com/vi/VIDEO_ID/hqdefault.jpg)](TEAM_ICEBREAKERS_HITS/Video/TEAM_ICEBREAKERS_VIDEO.mp4)
+<video width="600" controls>
+  <source src="TEAM_ICEBREAKERS_HITS/Video/TEAM_ICEBREAKERS_VIDEO.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ## Tech Used
 
