@@ -1,0 +1,114 @@
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css");
+@import url("https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap");
+
+.codemirror {
+  min-height: calc(100vh - 20px);
+  font-size: 20px;
+  line-height: 1.6;
+  padding-top: 20px;
+}
+body {
+  overflow-x: hidden;
+  font-family: "Lato", sans-serif;
+}
+body,
+.form-control {
+  color: white;
+}
+
+pre {
+  padding: 0.5rem 1rem;
+  overflow-y: scroll;
+  background: rgb(57, 53, 53);
+}
+
+.cr {
+  color: white;
+}
+
+#psb {
+  width: 10vw;
+  font-size: 1.25rem;
+  padding-left: 2rem;
+  text-align: left;
+}
+
+.form-1 {
+  border-radius: 0.2rem;
+  border: 1px solid white;
+  color: white;
+  background: transparent;
+  padding: 0.5rem 1rem;
+}
+
+#cr {
+  color: white;
+}
+
+.btn-primary i {
+  color: #007bff;
+}
+
+.language-selector {
+  margin-bottom: 10px;
+  padding: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+.alert {
+  background-color: #333;
+  color: #fff;
+  border-color: #666;
+}
+
+input.form-control {
+  color: white;
+  background-color: #333;
+  border: 1px solid #666;
+}
+
+input.form-control::placeholder {
+  color: #aaa;
+}
+
+body,
+.form-control {
+  color: white;
+}
+
+input#cr {
+  color: white;
+  background-color: #444;
+  border: 1px solid #666;
+}
+
+input#cr::placeholder {
+  color: #888;
+}
+
+@media (max-width: 768px) {
+  .editor-container {
+    flex-direction: column;
+  }
+
+  .editor-header,
+  .editor-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .editor-header .btn {
+    margin-bottom: 1rem;
+  }
+}
