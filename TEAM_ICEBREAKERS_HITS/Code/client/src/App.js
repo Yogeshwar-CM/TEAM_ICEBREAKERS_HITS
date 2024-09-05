@@ -5,7 +5,7 @@ import EditorPage from "./components/EditorPage";
 import { Toaster } from "react-hot-toast";
 
 function App() {
-  // Suppress ResizeObserver loop limit exceeded errors
+  
   const consoleError = console.error;
   console.error = (...args) => {
     if (

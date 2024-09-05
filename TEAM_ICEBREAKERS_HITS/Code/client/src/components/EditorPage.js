@@ -24,7 +24,7 @@ function EditorPage() {
   const { roomId } = useParams();
 
   const socketRef = useRef(null);
-  // Suppress ResizeObserver loop limit exceeded errors
+
   const consoleError = console.error;
   console.error = (...args) => {
     if (
@@ -33,9 +33,9 @@ function EditorPage() {
         "ResizeObserver loop completed with undelivered notifications."
       )
     ) {
-      return; // Ignore specific error
+      return;
     }
-    consoleError(...args); // Else log error as usual
+    consoleError(...args);
   };
 
   useEffect(() => {
@@ -177,7 +177,7 @@ function EditorPage() {
       });
     }
   };
-  // ResizeObserver workaround to debounce updates
+
   const handleResize = debounce(() => {
     if (editorRef.current) {
       editorRef.current.layout();
