@@ -1,7 +1,7 @@
 const pty = require("node-pty");
 const os = require("os");
 
-const shell = os.platform() === "win32" ? "powershell.exe" : "bash";
+const shell = process.env.SHELL || (os.platform() === "win32" ? "powershell.exe" : "/bin/bash");
 
 const terminalSessions = {};
 

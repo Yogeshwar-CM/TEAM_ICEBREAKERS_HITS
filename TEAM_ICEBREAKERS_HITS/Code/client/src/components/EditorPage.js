@@ -7,6 +7,7 @@ import { toast } from "react-hot-toast";
 import Client from "./Client";
 import FileTree from "./FileTree";
 import TerminalComponent from "./TerminalComponent";
+import MagicPanel from "./MagicPanel";
 import debounce from "lodash.debounce";
 import { Tooltip, OverlayTrigger } from "react-bootstrap";
 import Spinner from "react-bootstrap/Spinner";
@@ -51,7 +52,7 @@ const getLanguageFromFile = (fileName) => {
 function EditorPage() {
   const [clients, setClients] = useState([]);
   const editorRef = useRef(null);
-  const terminalRef = useRef(null); // Ref to access terminal methods
+  const terminalRef = useRef(null);
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const codeRef = useRef("");
@@ -65,6 +66,9 @@ function EditorPage() {
   const [openTabs, setOpenTabs] = useState(["src/main.js"]);
   const [fileContents, setFileContents] = useState({});
   const [aiChat, setAiChat] = useState([{ role: "system", content: "Hi! I'm your AI coding assistant. Ask me anything about your code!" }]);
+
+  // State for Magic Panel (debounced code updates)
+  const [magicCode, setMagicCode] = useState("");
 
   const socketRef = useRef(null);
 
@@ -121,6 +125,7 @@ function EditorPage() {
     if (editorRef.current) {
       editorRef.current.setValue(content);
       codeRef.current = content;
+      setMagicCode(content); // Update magic panel immediately on file switch
     }
     if (socketRef.current) {
       socketRef.current.emit(ACTIONS.ACTIVE_FILE_CHANGE, { roomId, filePath });
@@ -173,6 +178,7 @@ function EditorPage() {
           if (editorRef.current) {
             editorRef.current.setValue(code || initialContent);
             codeRef.current = code || initialContent;
+            setMagicCode(code || initialContent);
           }
           if (code) {
             socketRef.current.emit(ACTIONS.SYNC_CODE, { code: codeRef.current });
@@ -190,17 +196,8 @@ function EditorPage() {
 
         socketRef.current.on(ACTIONS.COMPILATION_RESULT, (result) => {
           setLoading(false);
-          // Write output to terminal
-          // Access the exposed method on the xterm ref via the Ref object we passed?
-          // Since TerminalComponent is a child, we can't directly access its internal ref unless we use forwardRef or handle it via a prop or event.
-          // Actually, in the TerminalComponent code I added `xtermRef.current.writeToTerminal` to the ref. But I need to pass a ref from here.
-
-          // Wait, standard practice: use a ref to the component instance via forwardRef?
-          // Or simpler: Find a way to broadcast.
-          // Let's modify TerminalComponent to accept a `write` prop? No, that's for render.
-          // I'll emit to an event listener or just pass a ref callback.
-          // Let's assume for now I will use window event or something simple?
-          // Better: Let's pass a ref object that the child populates.
+          const event = new CustomEvent('terminal-write', { detail: result.output || result.error });
+          window.dispatchEvent(event);
         });
 
         socketRef.current.on(ACTIONS.CODE_GENERATION_RESULT, (result) => {
@@ -208,6 +205,7 @@ function EditorPage() {
           if (editorRef.current) {
             editorRef.current.setValue(code);
             codeRef.current = code;
+            setMagicCode(code);
             socketRef.current.emit(ACTIONS.CODE_CHANGE, { roomId, code });
           }
           setLoading(false);
@@ -217,6 +215,7 @@ function EditorPage() {
         socketRef.current.on(ACTIONS.CODE_CHANGE, ({ code }) => {
           if (codeRef.current !== code) {
             codeRef.current = code;
+            setMagicCode(code); // Remote changes update magic panel
             if (editorRef.current && editorRef.current.getValue() !== code) {
               editorRef.current.setValue(code);
             }
@@ -245,30 +244,6 @@ function EditorPage() {
     };
   }, []);
 
-  // Effect to handle terminal writing when compilation result comes in
-  useEffect(() => {
-    if (!socketRef.current) return;
-
-    const handleCompilation = (result) => {
-      setLoading(false);
-      const term = document.querySelector('.terminal-container')?.__xterm; // Hacky way, or use context.
-      // Let's use a simpler event based approach or ref check
-      // Since I cannot modify TerminalComponent props easily to expose instance without rewrite,
-      // I'll fix this in the TerminalComponent above.
-    }
-
-    socketRef.current.on(ACTIONS.COMPILATION_RESULT, (result) => {
-      setLoading(false);
-      // Dispatch a custom event that Terminal listens to?
-      const event = new CustomEvent('terminal-write', { detail: result.output || result.error });
-      window.dispatchEvent(event);
-    });
-
-    return () => {
-      socketRef.current?.off(ACTIONS.COMPILATION_RESULT);
-    }
-  }, []);
-
   const copyRoomId = async () => {
     try {
       await navigator.clipboard.writeText(roomId);
@@ -281,7 +256,6 @@ function EditorPage() {
   const handleCompile = () => {
     if (codeRef.current) {
       setLoading(true);
-      // Clear terminal first
       window.dispatchEvent(new CustomEvent('terminal-clear'));
       window.dispatchEvent(new CustomEvent('terminal-write', { detail: 'Compiling...\r\n' }));
 
@@ -307,11 +281,13 @@ function EditorPage() {
     const initialContent = getFileContent(fileTree, activeFile);
     editor.setValue(initialContent);
     codeRef.current = initialContent;
+    setMagicCode(initialContent);
 
     const handleEditorChange = debounce(() => {
       const newCode = editor.getValue();
       if (codeRef.current !== newCode) {
         codeRef.current = newCode;
+        setMagicCode(newCode); // Update magic panel
         setFileContents((prev) => ({ ...prev, [activeFile]: newCode }));
         socketRef.current.emit(ACTIONS.CODE_CHANGE, { roomId, code: newCode });
       }
@@ -328,11 +304,10 @@ function EditorPage() {
         </div>
       )}
 
-      {/* Top Bar - VSCode like */}
+      {/* Top Bar */}
       <div className="d-flex align-items-center px-3 py-2 bg-[#252526] border-bottom border-[#333]" style={{ backgroundColor: '#252526', height: '50px' }}>
         <img src="/images/ICEBREAKERS.png" alt="Logo" style={{ height: "24px", marginRight: "16px" }} />
         <div className="d-flex flex-grow-1 mx-3 gap-2">
-          {/* Room Info */}
           <div className="d-flex align-items-center bg-[#3c3c3c] px-2 py-1 rounded" style={{ fontSize: '12px', backgroundColor: '#3c3c3c' }}>
             <span className="text-muted me-2">Room:</span>
             <span className="font-monospace">{roomId}</span>
@@ -342,7 +317,6 @@ function EditorPage() {
           </div>
         </div>
 
-        {/* Actions */}
         <div className="d-flex align-items-center gap-2">
           <div className="clients-list d-flex me-3">
             {clients.map((client) => (
@@ -375,7 +349,6 @@ function EditorPage() {
 
         {/* Center (Editor + Terminal) */}
         <div className="d-flex flex-column flex-grow-1" style={{ minWidth: 0 }}>
-          {/* Editor Tabs */}
           <div className="file-tabs" style={{ height: '35px' }}>
             {openTabs.map((tab) => (
               <button
@@ -390,7 +363,6 @@ function EditorPage() {
             ))}
           </div>
 
-          {/* Monaco Editor */}
           <div className="flex-grow-1 position-relative">
             <MonacoEditor
               height="100%"
@@ -408,7 +380,6 @@ function EditorPage() {
             />
           </div>
 
-          {/* Terminal Panel */}
           <div style={{ height: "250px", borderTop: '1px solid #333', backgroundColor: '#1e1e1e', display: 'flex', flexDirection: 'column' }}>
             <div className="d-flex align-items-center px-3 py-1 bg-[#252526]" style={{ backgroundColor: '#252526', fontSize: '12px', borderBottom: '1px solid #333' }}>
               <span className="text-uppercase font-weight-bold" style={{ cursor: 'pointer', borderBottom: '1px solid #fff' }}>Terminal</span>
@@ -424,13 +395,12 @@ function EditorPage() {
           </div>
         </div>
 
-        {/* Right Panel (AI Chat) */}
+        {/* Right Panel (AI Chat + Magic Panel) */}
         <div className="d-flex flex-column" style={{ width: "300px", flexShrink: 0, backgroundColor: '#1e1e1e', borderLeft: '1px solid #333' }}>
           <div className="p-3 border-bottom border-[#333]" style={{ backgroundColor: '#252526', color: '#ccc' }}>
             <i className="fas fa-robot me-2"></i> AI Assistant
           </div>
 
-          {/* Chat History */}
           <div className="flex-grow-1 p-3 overflow-auto d-flex flex-column gap-3">
             {aiChat.map((msg, idx) => (
               <div key={idx} className={`d-flex ${msg.role === 'user' ? 'justify-content-end' : 'justify-content-start'}`}>
@@ -448,7 +418,6 @@ function EditorPage() {
             ))}
           </div>
 
-          {/* Input */}
           <div className="p-3 border-top border-[#333]">
             <div className="input-group">
               <input
@@ -465,6 +434,9 @@ function EditorPage() {
               </button>
             </div>
           </div>
+
+          {/* MAGIC PANEL: Automatically shows context-aware tools */}
+          <MagicPanel code={magicCode} activeLine={0} roomId={roomId} socketRef={socketRef} />
         </div>
 
       </div>
