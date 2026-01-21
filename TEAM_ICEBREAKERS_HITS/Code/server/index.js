@@ -6,8 +6,9 @@ const ACTIONS = require("./Actions");
 const Eval = require("open-eval");
 const mongoose = require("mongoose");
 const Code = require("./models/Code");
+const { initTerminal } = require("./TerminalHandler");
 
-// Load environment variables (optional: use dotenv)
+// Load environment variables
 require("dotenv").config();
 
 mongoose
@@ -41,12 +42,11 @@ const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
 
-const GROQ_MODEL = "llama-3.1-70b-versatile"; // Fast and capable model
+const GROQ_MODEL = "llama-3.1-8b-instant";
 const SYSTEM_PROMPT = "Generate only code. Do not include explanations or additional text.";
 
 const ev = new Eval();
 
-// Helper function to generate AI response using Groq
 async function generateWithGroq(prompt, systemPrompt = SYSTEM_PROMPT) {
   const chatCompletion = await groq.chat.completions.create({
     messages: [
@@ -68,6 +68,13 @@ io.on("connection", (socket) => {
   socket.on(ACTIONS.JOIN, async ({ roomId, username }) => {
     userSocketMap[socket.id] = username;
     socket.join(roomId);
+
+    // Initialize terminal session for this room
+    try {
+      initTerminal(io, socket, roomId);
+    } catch (e) {
+      console.error("Failed to init terminal:", e);
+    }
 
     try {
       let roomCode = await Code.findOne({ roomId });
@@ -177,6 +184,19 @@ io.on("connection", (socket) => {
         error: "Failed to generate recommendations.",
       });
     }
+  });
+
+  // File tree sync
+  socket.on(ACTIONS.FILE_TREE_UPDATE, ({ roomId, fileTree }) => {
+    socket.in(roomId).emit(ACTIONS.FILE_TREE_UPDATE, { fileTree });
+  });
+
+  // Active file change
+  socket.on(ACTIONS.ACTIVE_FILE_CHANGE, ({ roomId, filePath }) => {
+    socket.in(roomId).emit(ACTIONS.ACTIVE_FILE_CHANGE, {
+      filePath,
+      username: userSocketMap[socket.id]
+    });
   });
 
   socket.on("disconnecting", () => {
