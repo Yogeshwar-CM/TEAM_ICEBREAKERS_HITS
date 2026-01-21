@@ -20,7 +20,7 @@ Click to download the project demo video: [Download TEAM_ICEBREAKERS_Demo.mp4](T
 
 - **Backend:** Node.js, Express.js, MongoDB
 - **Frontend:** React, Tailwind CSS, React Bootstrap, Monaco Editor
-- **AI Integration:** Ollama
+- **AI Integration:** Groq (llama-3.1-70b-versatile)
 - **Real-Time Communication:** WebSockets (Socket.io)
 
 ## How to Install and Set Up
@@ -33,18 +33,22 @@ Click to download the project demo video: [Download TEAM_ICEBREAKERS_Demo.mp4](T
 2. **Install Dependencies**
 
 For both server and client:
-cd into both server and client seperately and execute the following
+cd into both server and client separately and execute the following
   ```bash
     npm install
   ```
 
-3. **Start the Ollama Model**
-   If you dont have it already, You can download it from [Ollama](https://ollama.com).
-   Once installed, open another terminal and run
+3. **Set Up Groq API Key**
+   - Get your free API key from [Groq Console](https://console.groq.com/keys)
+   - Create a `.env` file in the `server` directory:
    ```bash
-   ollama start
+   cd server
+   cp .env.example .env
    ```
-   to run ollama locally in your system
+   - Add your Groq API key to the `.env` file:
+   ```
+   GROQ_API_KEY=your_api_key_here
+   ```
 
 4. **Start the Server**
    ```bash

@@ -1,20 +1,17 @@
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
-const { Ollama } = require("ollama-node");
+const Groq = require("groq-sdk");
 const ACTIONS = require("./Actions");
 const Eval = require("open-eval");
 const mongoose = require("mongoose");
 const Code = require("./models/Code");
 
+// Load environment variables (optional: use dotenv)
+require("dotenv").config();
+
 mongoose
-  .connect(
-    "mongodb+srv://root:root@cluster0.rzb1t.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
-    {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    }
-  )
+  .connect(process.env.MONGODB_URI)
   .then(() => {
     console.log("Connected to MongoDB");
   })
@@ -39,22 +36,31 @@ const getAllConnectedClients = (roomId) => {
   );
 };
 
-const ollama = new Ollama();
+// Initialize Groq client
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
+});
+
+const GROQ_MODEL = "llama-3.1-70b-versatile"; // Fast and capable model
+const SYSTEM_PROMPT = "Generate only code. Do not include explanations or additional text.";
+
 const ev = new Eval();
 
-async function initializeOllama() {
-  try {
-    await ollama.setModel("llama3.1:latest");
-    console.log("Model llama3.1:latest set successfully.");
-    await ollama.setSystemPrompt(
-      "Generate only code. Do not include explanations or additional text."
-    );
-  } catch (error) {
-    console.error("Error setting model:", error);
-  }
+// Helper function to generate AI response using Groq
+async function generateWithGroq(prompt, systemPrompt = SYSTEM_PROMPT) {
+  const chatCompletion = await groq.chat.completions.create({
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: prompt },
+    ],
+    model: GROQ_MODEL,
+    temperature: 0.7,
+    max_tokens: 2048,
+  });
+  return chatCompletion.choices[0]?.message?.content || "";
 }
 
-initializeOllama();
+console.log("Groq client initialized with model:", GROQ_MODEL);
 
 io.on("connection", (socket) => {
   console.log("Socket connected", socket.id);
@@ -125,8 +131,7 @@ io.on("connection", (socket) => {
 
   socket.on(ACTIONS.GENERATE_CODE, async ({ prompt }) => {
     try {
-      const response = await ollama.generate(prompt);
-      const generatedText = response.output || "";
+      const generatedText = await generateWithGroq(prompt);
 
       console.log("Generated code:", generatedText);
 
@@ -150,10 +155,10 @@ io.on("connection", (socket) => {
   socket.on(ACTIONS.RECOMMEND_CODE, async ({ code }) => {
     try {
       console.log(code);
-      const response = await ollama.generate(
-        `Recommend improvements for the following code:\n\n${code}`
+      const recommendations = await generateWithGroq(
+        `Recommend improvements for the following code:\n\n${code}`,
+        "You are a helpful code reviewer. Provide clear, actionable recommendations to improve the given code."
       );
-      const recommendations = response.output || "";
 
       console.log("Code recommendations:", recommendations);
 
